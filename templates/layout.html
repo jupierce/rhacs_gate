@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+    <title>Red Hat Advanced Cluster Security (RHACS) - {% block title %}{% endblock %}</title>
+    {% endblock %}
+  </head>
+  <body>
+    <div>
+      <img src="{{url_for('static', filename='logo.svg')}}" height="75px">
+    </div>
+    <div>
+      <h1>Red Hat Advanced Cluster Security (RHACS)</h1>
+    </div>
+    <div id="content" class="content">{% block content %}{% endblock %}</div>
+    <div id="flashes">
+        <p>
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <ul class="flashes">
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+              </ul>
+            {% endif %}
+          {% endwith %}
+        </p>
+    </div>
+    <div id="footer">
+      {% block footer %}
+      {% endblock %}
+    </div>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block title %}Image Access Request Approved{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h2>Image Access Request Approved</h2>
+  <p class="important">
+  <div>
+        <p>
+            You have been successfully registered to access Red Hat Advanced Cluster Security content.
+            Authenticate with quay.io to pull images.
+            <br>
+            <h3 style="margin-bottom: 0px; margin-top: 2em;">Credentials</h3>
+            Username: <code>{{ robot_name }}</code><br>
+            Password: <code>{{ token }}</code><br>
+            <br>
+            <h2>Examples:</h2>
+            <h3 style="margin-bottom: 0px; margin-top: 2em;">Podman login</h3>
+            <code>podman login -u {{ robot_name }} -p {{ token }} quay.io</code>
+            <br>
+            <h3 style="margin-bottom: 0px; margin-top: 2em;">Docker login</h3>
+            <code>docker login -u {{ robot_name }} -p {{ token }} quay.io</code>
+            <br>
+            <h3 style="margin-bottom: 0px; margin-top: 2em;">Auths Configuratoin File</h3>
+            <textarea style="font-family: Consolas,Lucida Console,Monaco,monospace; width: 100%;">
+{
+    "auths": {
+        "quay.io": {
+            "auth": "{{ conf_auth }}"
+        }
+    }
+}
+            </textarea>
+            </code>
+        </p>
+  </div>
+
+{% endblock %}

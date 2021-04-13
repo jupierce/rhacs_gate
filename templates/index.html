@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}Image Access Request{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+
+ <script>
+   function onSubmit(token) {
+     document.getElementById("data_form").submit();
+   }
+ </script>
+
+{% endblock %}
+{% block content %}
+    <h2>Image Access Request Form</h2>
+
+  <p class="important">
+
+  <div>
+    {% from "_formhelpers.html" import render_field, field_errors %}
+    <form action="/" method="post" id="data_form">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.full_name, size=32, required=True) }}
+        {{ render_field(form.phone, size=32, required=True) }}
+        {{ render_field(form.company_name, size=32) }}
+        {{ render_field(form.email_address, size=32, required=True) }}
+
+        <p>
+            By submitting this form, you are agreeing to the <a target="_blank" href="{{url_for('terms')}}">terms and conditions</a> for using these images.
+        </p>
+        <p>
+            {{ form.accept }}
+            {{ form.accept.label }}<br>
+        </p>
+        <p>
+            {{ form.recaptcha() }}
+            {{ field_errors(form.recaptcha) }}
+        </p>
+        <p>
+            {{ form.submit() }}
+        </p>
+
+    </form>
+  </div>
+
+{% endblock %}

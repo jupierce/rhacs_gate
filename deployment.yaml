@@ -1,0 +1,170 @@
+---
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: server
+  namespace: rhacs-gate
+spec: {}
+---
+kind: BuildConfig
+apiVersion: v1
+metadata:
+  name: server
+spec:
+  successfulBuildsHistoryLimit: 1
+  failedBuildsHistoryLimit: 2
+  output:
+    to:
+      kind: ImageStreamTag
+      name: server:latest
+  source:
+    git:
+      uri: https://github.com/jupierce/rhacs_gate
+      ref: main
+    type: Git
+  strategy:
+    dockerStrategy:
+      imageOptimizationPolicy: SkipLayers
+  triggers:
+  - type: ConfigChange
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server:latest","namespace":"rhacs-gate"},"fieldPath":"spec.template.spec.containers[?(@.name==\"server\")].image"}]'
+  name: server
+  namespace: rhacs-gate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rhacs-gate
+  template:
+    metadata:
+      labels:
+        app: rhacs-gate
+    spec:
+      containers:
+      - command:
+        - python3
+        - main.py
+        image: 'server:latest'
+        name: server
+        env:
+        - name: CRSF_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: CRSF_SECRET_KEY
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: AWS_SECRET_ACCESS_KEY
+        - name: QUAY_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: QUAY_TOKEN
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: AWS_DEFAULT_REGION
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: SECRET_KEY
+        - name: SERVER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: SERVER_NAME
+        - name: RECAPTCHA_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: RECAPTCHA_PUBLIC_KEY
+        - name: RECAPTCHA_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: RECAPTCHA_PRIVATE_KEY
+        - name: EMAIL_IDENTITY
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: EMAIL_IDENTITY
+        - name: EMAIL_IDENTITY_ARN
+          valueFrom:
+            secretKeyRef:
+              name: credentials
+              key: EMAIL_IDENTITY_ARN
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: 500Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+  namespace: rhacs-gate
+spec:
+  selector:
+    app: rhacs-gate
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+  name: rhacs
+  namespace: rhacs-gate
+spec:
+  port:
+    targetPort: 8080
+  subdomain: rhacs
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: triage
+    weight: 100
+  wildcardPolicy: None
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rhacs
+  namespace: rhacs-gate
+  annotations:
+    cert-manager.io/cluster-issuer: cert-issuer
+spec:
+  rules:
+  - host: rhacs.dptools.openshift.org
+    http:
+      paths:
+      - backend:
+          service:
+            name: server
+            port:
+              number: 80
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - rhacs.dptools.openshift.org
+    secretName: triage-tls

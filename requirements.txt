@@ -1,0 +1,8 @@
+flask~=1.1.2
+flask_wtf
+phonenumbers~=8.12.21
+requests~=2.24.0
+typing~=3.7.4.3
+boto3~=1.16.29
+WTForms~=2.3.3
+email_validator~=1.1.2
