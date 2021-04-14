@@ -4,6 +4,8 @@ import hashlib
 import time
 import base64
 import requests
+import sys
+import waitress
 
 from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm, RecaptchaField
@@ -258,4 +260,10 @@ Please navigate your web browser to {url_for('verify', vcode={verification_code}
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'debug':
+            app.run(host="127.0.0.1", port=8080, debug=True)
+        else:
+            print(f'Unknown command line options: {sys.argv[1:]}')
+    else:
+        waitress.serve(app, listen='0.0.0.0:8080')
